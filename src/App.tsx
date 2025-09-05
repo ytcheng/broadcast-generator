@@ -361,10 +361,27 @@ function App() {
           }
           if (update.audioData) {
             setGeneratedAudioData(update.audioData);
-            // 创建 Blob URL 用于播放
-            const blob = new Blob([new Uint8Array(update.audioData)], { type: `audio/${audioFormat}` });
-            const audioUrl = URL.createObjectURL(blob);
-            setGeneratedAudioUrl(audioUrl);
+            // 在生产环境中使用data URL，在开发环境中使用blob URL
+            try {
+              // @ts-ignore - Tauri全局变量
+              if (window.__TAURI__) {
+                // Tauri环境，使用data URL更稳定
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(update.audioData)));
+                const audioUrl = `data:audio/${audioFormat};base64,${base64Audio}`;
+                setGeneratedAudioUrl(audioUrl);
+              } else {
+                // 浏览器环境，使用blob URL
+                const blob = new Blob([new Uint8Array(update.audioData)], { type: `audio/${audioFormat}` });
+                const audioUrl = URL.createObjectURL(blob);
+                setGeneratedAudioUrl(audioUrl);
+              }
+            } catch (error) {
+              console.error('创建音频URL失败:', error);
+              // 降级到blob URL
+              const blob = new Blob([new Uint8Array(update.audioData)], { type: `audio/${audioFormat}` });
+              const audioUrl = URL.createObjectURL(blob);
+              setGeneratedAudioUrl(audioUrl);
+            }
           }
           if (update.textFile) {
             setGeneratedTextFile(update.textFile);

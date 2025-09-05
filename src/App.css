@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .content-auto {
+    content-visibility: auto;
+  }
+  .shadow-soft {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+  .transition-custom {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #1677ff 0%, #0284c7 100%);
+  }
+  .border-dashed-2 {
+    border-style: dashed;
+    border-width: 2px;
+  }
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(22, 119, 255, 0.1);
+  }
+}
+
+/* 确保自定义颜色正确应用 */
+.text-primary { color: #1677ff; }
+.bg-primary { background-color: #1677ff; }
+.border-primary { border-color: #1677ff; }
+.text-secondary { color: #0284c7; }
+.bg-secondary { background-color: #0284c7; }
+.text-neutral { color: #64748b; }
+.text-success { color: #10b981; }
+.bg-success { background-color: #10b981; }
+.text-warning { color: #f59e0b; }
+.bg-warning { background-color: #f59e0b; }
+.text-danger { color: #ef4444; }
+.bg-danger { background-color: #ef4444; }

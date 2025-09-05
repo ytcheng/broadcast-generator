@@ -1,0 +1,78 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "websocket:default",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-write-file",
+    "fs:allow-write-text-file",
+    "fs:allow-create",
+    "fs:allow-mkdir",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPDATA/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        {
+          "path": "$DOWNLOAD/*"
+        },
+        {
+          "path": "$HOME/Downloads/*"
+        },
+        {
+          "path": "$APPDATA/*"
+        },
+        {
+          "path": "$DESKTOP/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        {
+          "path": "$DOWNLOAD/*"
+        },
+        {
+          "path": "$HOME/Downloads/*"
+        },
+        {
+          "path": "$APPDATA/*"
+        },
+        {
+          "path": "$DESKTOP/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-create",
+      "allow": [
+        {
+          "path": "$DOWNLOAD/*"
+        },
+        {
+          "path": "$HOME/Downloads/*"
+        },
+        {
+          "path": "$APPDATA/*"
+        },
+        {
+          "path": "$DESKTOP/*"
+        }
+      ]
+    }
+  ]
+}

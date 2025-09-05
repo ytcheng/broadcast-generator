@@ -75,6 +75,15 @@ function App() {
     updateDialogErrors(dialogs);
   }, [dialogs.length]); // 只在对话数组长度变化时重新验证
 
+  // 清理音频URL，避免内存泄漏
+  useEffect(() => {
+    return () => {
+      if (generatedAudioUrl && generatedAudioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(generatedAudioUrl);
+      }
+    };
+  }, [generatedAudioUrl]);
+
   // 保存配置到本地存储
   const saveConfig = (newAppId: string, newAccessKey: string) => {
     try {
@@ -320,6 +329,14 @@ function App() {
     setProgress(0);
     setStatusMessage('准备开始生成播客...');
     setGeneratedAudioFile('');
+    setGeneratedAudioData(null);
+    // 清理旧的音频URL
+    if (generatedAudioUrl) {
+      if (generatedAudioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(generatedAudioUrl);
+      }
+    }
+    setGeneratedAudioUrl('');
     setGeneratedTextFile('');
     setPodcastTexts([]);
 
@@ -434,7 +451,9 @@ function App() {
     setGeneratedAudioFile("");
     setGeneratedAudioData(null);
     if (generatedAudioUrl) {
-      URL.revokeObjectURL(generatedAudioUrl);
+      if (generatedAudioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(generatedAudioUrl);
+      }
     }
     setGeneratedAudioUrl("");
     setGeneratedTextFile("");

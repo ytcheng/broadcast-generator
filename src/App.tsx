@@ -5,6 +5,33 @@ import { save, open } from '@tauri-apps/plugin-dialog';
 import { writeFile, readFile } from '@tauri-apps/plugin-fs';
 import mammoth from 'mammoth';
 
+const DEFAULT_MALE_VOICE = "zh_male_dayixiansheng_v2_saturn_bigtts";
+const DEFAULT_FEMALE_VOICE = "zh_female_mizaitongxue_v2_saturn_bigtts";
+
+const STRICT_SPEAKER_MAP: Record<string, string> = {
+  "大义": DEFAULT_MALE_VOICE,
+  "大义先生": DEFAULT_MALE_VOICE,
+  "大义老师": DEFAULT_MALE_VOICE,
+  "Dayi": DEFAULT_MALE_VOICE,
+  "dayi": DEFAULT_MALE_VOICE,
+  "米仔": DEFAULT_FEMALE_VOICE,
+  "米仔同学": DEFAULT_FEMALE_VOICE,
+  "Mizai": DEFAULT_FEMALE_VOICE,
+  "mizai": DEFAULT_FEMALE_VOICE,
+  "刘飞": "zh_male_liufei_v2_saturn_bigtts",
+  "潇磊": "zh_male_xiaolei_v2_saturn_bigtts"
+};
+
+const MALE_VOICES = new Set<string>([
+  DEFAULT_MALE_VOICE,
+  "zh_male_liufei_v2_saturn_bigtts",
+  "zh_male_xiaolei_v2_saturn_bigtts"
+]);
+
+const FEMALE_VOICES = new Set<string>([
+  DEFAULT_FEMALE_VOICE
+]);
+
 function App() {
   // 状态管理
   const [appId, setAppId] = useState("");
@@ -35,8 +62,8 @@ function App() {
 
   // 对话列表状态
   const [dialogs, setDialogs] = useState([
-    { speaker: "zh_male_dayi_v2_saturn_bigtts", text: "大家好，欢迎收听今天的播客！" },
-    { speaker: "zh_female_mizai_v2_saturn_bigtts", text: "是的，今天我们要聊一个很有趣的话题。" }
+    { speaker: DEFAULT_MALE_VOICE, text: "大家好，欢迎收听今天的播客！" },
+    { speaker: DEFAULT_FEMALE_VOICE, text: "是的，今天我们要聊一个很有趣的话题。" }
   ]);
   
   // 对话验证状态 - 跟踪每个对话文本是否超长
@@ -111,7 +138,7 @@ function App() {
 
   // 添加对话
   const addDialog = () => {
-    const newDialogs = [...dialogs, { speaker: "zh_male_dayi_v2_saturn_bigtts", text: "" }];
+    const newDialogs = [...dialogs, { speaker: DEFAULT_MALE_VOICE, text: "" }];
     setDialogs(newDialogs);
     updateDialogErrors(newDialogs);
   };
@@ -272,36 +299,52 @@ function App() {
 
   // 映射说话人名称
   const mapSpeakerName = (speakerName: string): string => {
-    const name = speakerName.toLowerCase().trim();
+    const trimmedName = speakerName.trim();
+    if (!trimmedName) {
+      return DEFAULT_MALE_VOICE;
+    }
+
+    const lowercaseName = trimmedName.toLowerCase();
+    const strictMatch = STRICT_SPEAKER_MAP[trimmedName] ?? STRICT_SPEAKER_MAP[lowercaseName];
+    if (strictMatch) {
+      return strictMatch;
+    }
 
     // 匹配常见的男性称呼
-    if (name.includes('男') || name.includes('先生') || name.includes('大义') || 
-        name.includes('male') || name.includes('man') || name.includes('boy') ||
-        (name.includes('主持人') && name.includes('男'))) {
-      return 'zh_male_dayi_v2_saturn_bigtts';
+    if (
+      lowercaseName.includes('男') ||
+      lowercaseName.includes('先生') ||
+      lowercaseName.includes('大义') ||
+      lowercaseName.includes('刘飞') ||
+      lowercaseName.includes('潇磊') ||
+      lowercaseName.includes('liufei') ||
+      lowercaseName.includes('xiaolei') ||
+      lowercaseName.includes('male') ||
+      lowercaseName.includes('man') ||
+      lowercaseName.includes('boy') ||
+      (lowercaseName.includes('主持人') && lowercaseName.includes('男'))
+    ) {
+      return DEFAULT_MALE_VOICE;
     }
 
     // 匹配常见的女性称呼
-    if (name.includes('女') || name.includes('女士') || name.includes('米仔') || 
-        name.includes('female') || name.includes('woman') || name.includes('girl') ||
-        (name.includes('主持人') && name.includes('女'))) {
-      return 'zh_female_mizai_v2_saturn_bigtts';
+    if (
+      lowercaseName.includes('女') ||
+      lowercaseName.includes('女士') ||
+      lowercaseName.includes('米仔') ||
+      lowercaseName.includes('mizai') ||
+      lowercaseName.includes('female') ||
+      lowercaseName.includes('woman') ||
+      lowercaseName.includes('girl') ||
+      (lowercaseName.includes('主持人') && lowercaseName.includes('女'))
+    ) {
+      return DEFAULT_FEMALE_VOICE;
     }
 
-    // 交替分配策略：如果无法确定性别，根据顺序交替分配
-    const maleCount = dialogs.filter(dialog => 
-      dialog.speaker === 'zh_male_dayi_v2_saturn_bigtts'
-    ).length;
-    const femaleCount = dialogs.filter(dialog => 
-      dialog.speaker === 'zh_female_mizai_v2_saturn_bigtts'
-    ).length;
+    const maleCount = dialogs.filter(dialog => MALE_VOICES.has(dialog.speaker)).length;
+    const femaleCount = dialogs.filter(dialog => FEMALE_VOICES.has(dialog.speaker)).length;
 
-    // 如果男性发言人更多，分配女性，反之分配男性，实现平衡
-    if (maleCount > femaleCount) {
-      return 'zh_female_mizai_v2_saturn_bigtts';
-    } else {
-      return 'zh_male_dayi_v2_saturn_bigtts';
-    }
+    return maleCount > femaleCount ? DEFAULT_FEMALE_VOICE : DEFAULT_MALE_VOICE;
   };
 
   // 生成播客
@@ -681,8 +724,10 @@ function App() {
                                 value={dialog.speaker}
                                 onChange={(e) => updateDialog(index, "speaker", e.target.value)}
                               >
-                                <option value="zh_male_dayi_v2_saturn_bigtts">男生 - 大义</option>
-                                <option value="zh_female_mizai_v2_saturn_bigtts">女生 - 米仔</option>
+                                <option value={DEFAULT_MALE_VOICE}>男生 - 大义先生</option>
+                                <option value="zh_male_liufei_v2_saturn_bigtts">男生 - 刘飞</option>
+                                <option value="zh_male_xiaolei_v2_saturn_bigtts">男生 - 潇磊</option>
+                                <option value={DEFAULT_FEMALE_VOICE}>女生 - 米仔同学</option>
                               </select>
                               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                                 <i className="fas fa-chevron-down text-gray-400 text-xs"></i>
